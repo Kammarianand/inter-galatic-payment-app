@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIM-CryptoFlow - Intergalactic Web3.0 Payment App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body { 
+    font-family: 'Orbitron', sans-serif;
+    background: linear-gradient(135deg, #1a202c, #2d3748);
+}
+
+#particles-js {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: -1;
+}
+
+#preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #1a202c;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loader {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    perspective: 800px;
+}
+
+.loader .inner {
+    position: absolute;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 5px solid transparent;
+}
+
+.loader .inner:nth-child(1) {
+    border-top-color: #4fd1c5;
+    animation: spin 1s linear infinite;
+}
+
+.loader .inner:nth-child(2) {
+    border-right-color: #4299e1;
+    animation: spin 1s linear infinite reverse;
+}
+
+.loader .inner:nth-child(3) {
+    border-bottom-color: #9f7aea;
+    animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.mining-boost {
+    animation: pulse 2s infinite;
+}
+
+.space-ship {
+    position: fixed;
+    bottom: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: bottom 2s ease-in-out;
+    font-size: 48px;
+}
+
+.space-ship.fly {
+    bottom: 120%;
+}
+
+.alien {
+    position: fixed;
+    top: -100px;
+    right: 20px;
+    transition: top 1s ease-in-out;
+    font-size: 48px;
+}
+
+.alien.visible {
+    top: 20px;
+}
+
+.black-hole {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, #000 60%, transparent 70%);
+    border-radius: 50%;
+    transition: transform 2s ease-in-out;
+}
+
+.black-hole.active {
+    transform: translate(-50%, -50%) scale(20);
+}
+
+.meteor {
+    position: fixed;
+    top: -50px;
+    left: -50px;
+    font-size: 24px;
+    transition: all 1s linear;
+}
+    </style>
+</head>
+<body class="text-white min-h-screen">
+    <div id="preloader">
+        <div class="loader">
+            <div class="inner"></div>
+            <div class="inner"></div>
+            <div class="inner"></div>
+        </div>
+    </div>
+
+    <div id="particles-js"></div>
+    <div x-data="cryptoFlow()" class="max-w-md mx-auto p-4">
+        <h1 x-show="!hideTitle" class="text-4xl font-bold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">KIM-CryptoFlow</h1>
+        
+        <div class="bg-gray-800 bg-opacity-80 rounded-2xl shadow-lg p-6 mb-6 border border-cyan-500">
+            <h2 class="text-xl font-semibold mb-2 text-cyan-400">Your Intergalactic Balance</h2>
+            <p class="text-4xl font-bold text-blue-400"><span x-text="balance.toFixed(2)"></span> KIM's</p>
+            <p class="text-sm text-gray-400 mt-2">Current Exchange Rate: 1 KIM = <span x-text="exchangeRate.toFixed(2)"></span>$</p>
+        </div>
+
+        <div class="bg-gray-800 bg-opacity-80 rounded-2xl shadow-lg p-6 mb-6 border border-cyan-500">
+            <div x-show="!showConfirmation">
+                <h2 class="text-xl font-semibold mb-4 text-cyan-400">Transfer KIM-Crypto</h2>
+                <form @submit.prevent="initiateTransfer">
+                    <div class="mb-4">
+                        <label for="recipient" class="block text-sm font-medium text-gray-300 mb-2">To Intergalactic Address</label>
+                        <input type="text" id="recipient" x-model="recipient" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-white placeholder-gray-400" placeholder="<user_id>@kim-crypto.galaxy" required>
+                    </div>
+                    <div class="mb-6">
+                        <label for="amount" class="block text-sm font-medium text-gray-300 mb-2">Amount (KIM)</label>
+                        <input type="number" id="amount" x-model="amount" min="0.01" step="0.01" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-white placeholder-gray-400" placeholder="50 KIM's" required>
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold py-3 px-4 rounded-lg hover:from-cyan-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition duration-300 ease-in-out transform hover:scale-105">
+                        Initiate Intergalactic Transfer
+                    </button>
+                </form>
+            </div>
+
+            <div x-show="showConfirmation">
+                <h2 class="text-xl font-semibold mb-4 text-cyan-400 text-center">Confirm Intergalactic Transaction</h2>
+                <p class="text-gray-300 mb-2">To: <span x-text="recipient" class="text-blue-400"></span></p>
+                <p class="text-gray-300 mb-4">Amount: <span x-text="amount + ' KIM'" class="text-blue-400"></span></p>
+                <div class="flex justify-center mb-4">
+                    <template x-for="(digit, index) in 6" :key="index">
+                        <div class="w-3 h-3 rounded-full mx-1" :class="confirmationCode.length > index ? 'bg-cyan-500' : 'bg-gray-600'"></div>
+                    </template>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <template x-for="n in 9">
+                        <button @click="addConfirmationDigit(n)" class="bg-gray-700 text-white font-bold py-3 rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                            <span x-text="n"></span>
+                        </button>
+                    </template>
+                    <button @click="confirmationCode = ''" class="bg-gray-700 text-white font-bold py-3 rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500">Clear</button>
+                    <button @click="addConfirmationDigit(0)" class="bg-gray-700 text-white font-bold py-3 rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500">0</button>
+                    <button @click="processTransaction" class="bg-gradient-to-r from-green-500 to-green-600 text-white font-bold py-3 rounded-lg hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gray-800 bg-opacity-80 rounded-2xl shadow-lg p-6 mb-6 border border-cyan-500">
+            <h2 class="text-xl font-semibold mb-4 text-cyan-400">Quantum Mining Boost</h2>
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-300 mb-2">Current Boost: <span x-text="miningBoost + 'x'"></span></p>
+                    <p class="text-xs text-gray-400">Next boost available in: <span x-text="formatTime(boostCooldown)"></span></p>
+                </div>
+                <button 
+                    @click="activateBoost" 
+                    :disabled="boostCooldown > 0"
+                    :class="{'opacity-50 cursor-not-allowed': boostCooldown > 0, 'mining-boost': boostCooldown === 0}"
+                    class="bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-semibold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition duration-300 ease-in-out"
+                >
+                    Activate Quantum Boost
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-gray-800 bg-opacity-80 rounded-2xl shadow-lg p-6 mb-6 border border-cyan-500">
+            <h2 class="text-xl font-semibold mb-4 text-cyan-400">Intergalactic Lottery</h2>
+            <p class="text-sm text-gray-300 mb-4">Try your luck in the galaxy-wide lottery! Cost: 10 KIM's</p>
+            <button 
+                @click="playLottery" 
+                :disabled="balance < 10"
+                :class="{'opacity-50 cursor-not-allowed': balance < 10}"
+                class="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-semibold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition duration-300 ease-in-out"
+            >
+                Play Intergalactic Lottery
+            </button>
+        </div>
+
+        <div class="bg-gray-800 bg-opacity-80 rounded-2xl shadow-lg p-6 mb-6 border border-cyan-500">
+            <h2 class="text-xl font-semibold mb-4 text-cyan-400">Cosmic Events</h2>
+            <button 
+                @click="triggerBlackHole" 
+                class="w-full bg-gradient-to-r from-gray-700 to-gray-900 text-white font-semibold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition duration-300 ease-in-out mb-4"
+            >
+                Trigger Black Hole
+            </button>
+            <button 
+                @click="summonMeteorShower" 
+                class="w-full bg-gradient-to-r from-red-500 to-orange-500 text-white font-semibold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition duration-300 ease-in-out"
+            >
+                Summon Meteor Shower
+            </button>
+        </div>
+
+        <div x-show="showModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
+            <div class="bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4 border border-cyan-500">
+                <h3 class="text-2xl font-semibold mb-4 text-cyan-400" x-text="modalTitle"></h3>
+                <p x-text="modalMessage" class="text-gray-300"></p>
+                <button @click="resetApp" class="mt-6 w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold py-2 px-4 rounded-lg hover:from-cyan-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition duration-300 ease-in-out">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center py-4 mt-8">
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">LinuXian <br>Intergalactic Payment Services</span>
+    </footer>
+
+    <div class="space-ship">
+        🚀
+    </div>
+
+    <div class="alien">
+        👽
+    </div>
+
+    <div class="black-hole"></div>
+
+    <script>
+        function cryptoFlow() {
+    return {
+        recipient: '',
+        amount: '',
+        confirmationCode: '',
+        showConfirmation: false,
+        showModal: false,
+        modalTitle: '',
+        modalMessage: '',
+        hideTitle: false,
+        balance: 1000,
+        miningBoost: 1,
+        boostCooldown: 0,
+        miningInterval: null,
+        exchangeRate: 1,
+        alienInterval: null,
+        meteorShowerActive: false,
+
+        init() {
+            this.startMining();
+            this.startAlienVisits();
+            this.updateExchangeRate();
+        },
+
+        startMining() {
+            this.miningInterval = setInterval(() => {
+                this.balance += 0.1 * this.miningBoost;
+                if (this.boostCooldown > 0) {
+                    this.boostCooldown--;
+                }
+            }, 1000);
+        },
+
+        activateBoost() {
+            if (this.boostCooldown === 0) {
+                this.miningBoost = Math.floor(Math.random() * 5) + 2; // Random boost between 2x and 6x
+                this.boostCooldown = 60; // 60 second cooldown
+                setTimeout(() => {
+                    this.miningBoost = 1;
+                }, 10000); // Boost lasts for 10 seconds
+                this.launchSpaceship();
+            }
+        },
+
+        formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        },
+
+        addConfirmationDigit(digit) {
+            if (this.confirmationCode.length < 6) {
+                this.confirmationCode += digit;
+            }
+            if (this.confirmationCode.length === 6) {
+                this.processTransaction();
+            }
+        },
+
+        initiateTransfer() {
+            this.hideTitle = true;
+            this.showConfirmation = true;
+        },
+
+        processTransaction() {
+            setTimeout(() => {
+                this.showModal = true;
+                this.modalTitle = 'Intergalactic Transaction Failed';
+                this.modalMessage = `Oops! \n\nYour transfer of ${this.amount} KIM to ${this.recipient} couldn't be processed. \nOur quantum blockchain server is experiencing a temporal anomaly. \n\nThe Time Lords are working on fixing the issue! \n\nPlease try again when spacetime stabilizes.`;
+            }, 2000);
+        },
+
+        resetApp() {
+            this.recipient = '';
+            this.amount = '';
+            this.confirmationCode = '';
+            this.showConfirmation = false;
+            this.showModal = false;
+            this.hideTitle = false;
+        },
+
+        launchSpaceship() {
+            const spaceship = document.querySelector('.space-ship');
+            spaceship.classList.add('fly');
+            setTimeout(() => {
+                spaceship.classList.remove('fly');
+            }, 3000);
+        },
+
+        startAlienVisits() {
+            this.alienInterval = setInterval(() => {
+                const alien = document.querySelector('.alien');
+                alien.classList.add('visible');
+                setTimeout(() => {
+                    alien.classList.remove('visible');
+                }, 3000);
+            }, 30000); // Alien visits every 30 seconds
+        },
+
+        updateExchangeRate() {
+            setInterval(() => {
+                this.exchangeRate = 1 + Math.random() * 10; // Random fluctuation between 1 and 11
+            }, 5000); // Update every 5 seconds
+        },
+
+        playLottery() {
+            if (this.balance >= 10) {
+                this.balance -= 10;
+                const winningNumber = Math.floor(Math.random() * 1000000);
+                const playerNumber = Math.floor(Math.random() * 1000000);
+                
+                if (winningNumber === playerNumber) {
+                    const jackpot = 1000000;
+                    this.balance += jackpot;
+                    this.showModal = true;
+                    this.modalTitle = 'Intergalactic Jackpot!';
+                    this.modalMessage = `Congratulations! You've won the galactic jackpot of ${jackpot} KIM's! The entire universe is jealous of you right now!`;
+                } else {
+                    this.showModal = true;
+                    this.modalTitle = 'Better Luck Next Time';
+                    this.modalMessage = `Sorry, your number (${playerNumber}) didn't match the winning number (${winningNumber}). Keep trying, the universe might favor you next time!`;
+                }
+            }
+        },
+
+        triggerBlackHole() {
+            const blackHole = document.querySelector('.black-hole');
+            blackHole.classList.add('active');
+            setTimeout(() => {
+                this.balance = Math.floor(this.balance / 2);
+                this.showModal = true;
+                this.modalTitle = 'Black Hole Event!';
+                this.modalMessage = 'A cosmic black hole has swallowed half of your KIM tokens! The universe works in mysterious ways...';
+                blackHole.classList.remove('active');
+            }, 3000);
+        },
+
+        summonMeteorShower() {
+            if (!this.meteorShowerActive) {
+                this.meteorShowerActive = true;
+                const meteorShower = setInterval(() => {
+                    const meteor = document.createElement('div');
+                    meteor.className = 'meteor';
+                    meteor.textContent = '☄';
+                    meteor.style.left = (Math.random() * 100) + 'vw';
+                    document.body.appendChild(meteor);
+
+                    setTimeout(() => {
+                        meteor.style.top = '120vh';
+                        meteor.style.left = `${Math.random() * 100}vw`;
+                    }, 100);
+
+                    setTimeout(() => {
+                        meteor.remove();
+                    }, 2000);
+                }, 200);
+
+                setTimeout(() => {
+                    clearInterval(meteorShower);
+                    this.meteorShowerActive = false;
+                    this.balance += 100;
+                    this.showModal = true;
+                    this.modalTitle = 'Meteor Shower Windfall!';
+                    this.modalMessage = 'The meteor shower has gifted you 100 KIM tokens! Cosmic debris has never been so profitable!';
+                }, 10000);
+            }
+        }
+    }
+}
+
+particlesJS('particles-js', {
+    particles: {
+        number: { value: 80, density: { enable: true, value_area: 800 } },
+        color: { value: "#ffffff" },
+        shape: { type: "circle" },
+        opacity: { value: 0.5, random: false },
+        size: { value: 3, random: true },
+        line_linked: { enable: true, distance: 150, color: "#ffffff", opacity: 0.4, width: 1 },
+        move: { enable: true, speed: 6, direction: "none", random: false, straight: false, out_mode: "out", bounce: false }
+    },
+    interactivity: {
+        detect_on: "canvas",
+        events: { onhover: { enable: true, mode: "repulse" }, onclick: { enable: true, mode: "push" }, resize: true },
+        modes: { grab: { distance: 400, line_linked: { opacity: 1 } }, bubble: { distance: 400, size: 40, duration: 2, opacity: 8, speed: 3 }, repulse: { distance: 200, duration: 0.4 }, push: { particles_nb: 4 }, remove: { particles_nb: 2 } }
+    },
+    retina_detect: true
+});
+
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        document.getElementById('preloader').style.display = 'none';
+    }, 3000);
+});
+    </script>
+</body>
+</html>
